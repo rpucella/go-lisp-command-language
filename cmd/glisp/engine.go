@@ -12,8 +12,8 @@ type Engine struct {
 
 func NewEngine() Engine {
 	coreBindings := corePrimitives()
-	coreBindings["true"] = &VBoolean{true}
-	coreBindings["false"] = &VBoolean{false}
+	coreBindings["true"] = NewBoolean(true)
+	coreBindings["false"] = NewBoolean(false)
 	env := &Env{bindings: coreBindings, previous: nil}
 	return Engine{env}
 }
@@ -22,9 +22,9 @@ func NewEngine() Engine {
 // TODO: engine.Eval()
 // TODO: engine.ReadEval()
 
-// TODO: engine.DefineConstant()
-// TODO: engine.DefineFunction()
-// TODO: engine.DefineMacro()
+// TODO: engine.DefConstant()
+// TODO: engine.DefFunction()
+// TODO: engine.DefMacro()
 
 // TODO: make prompt a function (of what?)
 
@@ -59,7 +59,7 @@ func (e Engine) Repl(prompt string) {
 		}
 		if d != nil {
 			if d.typ == DEF_FUNCTION {
-				update(env, d.name, &VFunction{d.params, d.body, env})
+				update(env, d.name, &vFunction{d.params, d.body, env})
 				fmt.Println(d.name)
 				continue
 			}

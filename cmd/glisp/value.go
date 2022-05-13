@@ -35,170 +35,228 @@ type Value interface {
 	getDict() map[string]Value
 }
 
-type VInteger struct {
+type vInteger struct {
 	val int
 }
 
-type VBoolean struct {
+func NewInteger(v int) Value {
+	return &vInteger{v}
+}
+
+type vBoolean struct {
 	val bool
 }
 
-type VPrimitive struct {
+func NewBoolean(v bool) Value {
+	return &vBoolean{v}
+}
+
+type vPrimitive struct {
 	name      string
 	primitive func([]Value) (Value, error)
 }
 
-type VEmpty struct {
+func NewPrimitive(name string, prim func([]Value) (Value, error)) Value {
+	return &vPrimitive{name, prim}
 }
 
-type VCons struct {
+type vEmpty struct {
+}
+
+func NewEmpty() Value {
+	return &vEmpty{}
+}
+
+type vCons struct {
 	head   Value
 	tail   Value
-	length int
+	length int    // Doesn't appear used.
 }
 
-type VSymbol struct {
+func NewCons(head Value, tail Value) Value {
+	return &vCons{head: head, tail: tail}
+}
+
+type MutableCons = *vCons
+
+func NewMutableCons(head Value, tail Value) MutableCons {
+	return &vCons{head: head, tail: tail}
+}
+
+func (v MutableCons) setTail(tail Value) {
+	v.tail = tail
+}
+
+type vSymbol struct {
 	name string
 }
 
-type VFunction struct {
+func NewSymbol(name string) Value {
+	return &vSymbol{name}
+}
+
+type vFunction struct {
 	params []string
-	body   AST
+	body   ast
 	env    *Env
 }
 
-type VString struct {
+func NewFunction(params []string, body ast, env *Env) Value {
+	return &vFunction{params, body, env}
+}
+
+type vString struct {
 	val string
 }
 
-type VNil struct {
+func NewString(v string) Value {
+	return &vString{v}
 }
 
-type VReference struct {
+type vNil struct {
+}
+
+func NewNil() Value {
+	return &vNil{}
+}
+
+type vReference struct {
 	content Value
 }
 
-type VArray struct {
+func NewReference(v Value) Value {
+	return &vReference{v}
+}
+
+type vArray struct {
 	content []Value
 }
 
-type VDict struct {
+func NewArray(vs []Value) Value {
+	return &vArray{vs}
+}
+
+type vDict struct {
 	content map[string]Value
 }
 
-func (v *VInteger) display() string {
+func NewDict(vs map[string]Value) Value {
+	return &vDict{vs}
+}
+
+func (v *vInteger) display() string {
 	return fmt.Sprintf("%d", v.val)
 }
 
-func (v *VInteger) displayCDR() string {
+func (v *vInteger) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) intValue() int {
+func (v *vInteger) intValue() int {
 	return v.val
 }
 
-func (v *VInteger) strValue() string {
+func (v *vInteger) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) boolValue() bool {
+func (v *vInteger) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) apply(args []Value) (Value, error) {
+func (v *vInteger) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VInteger) str() string {
+func (v *vInteger) str() string {
 	return fmt.Sprintf("VInteger[%d]", v.val)
 }
 
-func (v *VInteger) headValue() Value {
+func (v *vInteger) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) tailValue() Value {
+func (v *vInteger) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) isAtom() bool {
+func (v *vInteger) isAtom() bool {
 	return true
 }
 
-func (v *VInteger) isSymbol() bool {
+func (v *vInteger) isSymbol() bool {
 	return false
 }
 
-func (v *VInteger) isCons() bool {
+func (v *vInteger) isCons() bool {
 	return false
 }
 
-func (v *VInteger) isEmpty() bool {
+func (v *vInteger) isEmpty() bool {
 	return false
 }
 
-func (v *VInteger) isNumber() bool {
+func (v *vInteger) isNumber() bool {
 	return true
 }
 
-func (v *VInteger) isBool() bool {
+func (v *vInteger) isBool() bool {
 	return false
 }
 
-func (v *VInteger) isRef() bool {
+func (v *vInteger) isRef() bool {
 	return false
 }
 
-func (v *VInteger) isString() bool {
+func (v *vInteger) isString() bool {
 	return false
 }
 
-func (v *VInteger) isFunction() bool {
+func (v *vInteger) isFunction() bool {
 	return false
 }
 
-func (v *VInteger) isTrue() bool {
+func (v *vInteger) isTrue() bool {
 	return v.val != 0
 }
 
-func (v *VInteger) isNil() bool {
+func (v *vInteger) isNil() bool {
 	return false
 }
 
-func (v *VInteger) isEqual(vv Value) bool {
+func (v *vInteger) isEqual(vv Value) bool {
 	return vv.isNumber() && v.intValue() == vv.intValue()
 }
 
-func (v *VInteger) typ() string {
+func (v *vInteger) typ() string {
 	return "int"
 }
 
-func (v *VInteger) getValue() Value {
+func (v *vInteger) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) setValue(cv Value) {
+func (v *vInteger) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) isArray() bool {
+func (v *vInteger) isArray() bool {
 	return false
 }
 
-func (v *VInteger) getArray() []Value {
+func (v *vInteger) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VInteger) isDict() bool {
+func (v *vInteger) isDict() bool {
 	return false
 }
 
-func (v *VInteger) getDict() map[string]Value {
+func (v *vInteger) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) display() string {
+func (v *vBoolean) display() string {
 	if v.val {
 		return "#t"
 	} else {
@@ -206,27 +264,27 @@ func (v *VBoolean) display() string {
 	}
 }
 
-func (v *VBoolean) displayCDR() string {
+func (v *vBoolean) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) intValue() int {
+func (v *vBoolean) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) strValue() string {
+func (v *vBoolean) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) boolValue() bool {
+func (v *vBoolean) boolValue() bool {
 	return v.val
 }
 
-func (v *VBoolean) apply(args []Value) (Value, error) {
+func (v *vBoolean) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VBoolean) str() string {
+func (v *vBoolean) str() string {
 	if v.val {
 		return "VBoolean[true]"
 	} else {
@@ -234,395 +292,395 @@ func (v *VBoolean) str() string {
 	}
 }
 
-func (v *VBoolean) headValue() Value {
+func (v *vBoolean) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) tailValue() Value {
+func (v *vBoolean) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) isAtom() bool {
+func (v *vBoolean) isAtom() bool {
 	return true
 }
 
-func (v *VBoolean) isSymbol() bool {
+func (v *vBoolean) isSymbol() bool {
 	return false
 }
 
-func (v *VBoolean) isCons() bool {
+func (v *vBoolean) isCons() bool {
 	return false
 }
 
-func (v *VBoolean) isEmpty() bool {
+func (v *vBoolean) isEmpty() bool {
 	return false
 }
 
-func (v *VBoolean) isNumber() bool {
+func (v *vBoolean) isNumber() bool {
 	return false
 }
 
-func (v *VBoolean) isBool() bool {
+func (v *vBoolean) isBool() bool {
 	return true
 }
 
-func (v *VBoolean) isRef() bool {
+func (v *vBoolean) isRef() bool {
 	return false
 }
 
-func (v *VBoolean) isString() bool {
+func (v *vBoolean) isString() bool {
 	return false
 }
 
-func (v *VBoolean) isFunction() bool {
+func (v *vBoolean) isFunction() bool {
 	return false
 }
 
-func (v *VBoolean) isTrue() bool {
+func (v *vBoolean) isTrue() bool {
 	return v.val
 }
 
-func (v *VBoolean) isNil() bool {
+func (v *vBoolean) isNil() bool {
 	return false
 }
 
-func (v *VBoolean) isEqual(vv Value) bool {
+func (v *vBoolean) isEqual(vv Value) bool {
 	return vv.isBool() && v.boolValue() == vv.boolValue()
 }
 
-func (v *VBoolean) typ() string {
+func (v *vBoolean) typ() string {
 	return "bool"
 }
 
-func (v *VBoolean) getValue() Value {
+func (v *vBoolean) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) setValue(cv Value) {
+func (v *vBoolean) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) isArray() bool {
+func (v *vBoolean) isArray() bool {
 	return false
 }
 
-func (v *VBoolean) getArray() []Value {
+func (v *vBoolean) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VBoolean) isDict() bool {
+func (v *vBoolean) isDict() bool {
 	return false
 }
 
-func (v *VBoolean) getDict() map[string]Value {
+func (v *vBoolean) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) display() string {
+func (v *vPrimitive) display() string {
 	return fmt.Sprintf("#<prim %s>", v.name)
 }
 
-func (v *VPrimitive) displayCDR() string {
+func (v *vPrimitive) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) intValue() int {
+func (v *vPrimitive) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) strValue() string {
+func (v *vPrimitive) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) boolValue() bool {
+func (v *vPrimitive) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) apply(args []Value) (Value, error) {
+func (v *vPrimitive) apply(args []Value) (Value, error) {
 	return v.primitive(args)
 }
 
-func (v *VPrimitive) str() string {
+func (v *vPrimitive) str() string {
 	return fmt.Sprintf("VPrimitive[%s]", v.name)
 }
 
-func (v *VPrimitive) headValue() Value {
+func (v *vPrimitive) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) tailValue() Value {
+func (v *vPrimitive) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) isAtom() bool {
+func (v *vPrimitive) isAtom() bool {
 	return false
 }
 
-func (v *VPrimitive) isSymbol() bool {
+func (v *vPrimitive) isSymbol() bool {
 	return false
 }
 
-func (v *VPrimitive) isCons() bool {
+func (v *vPrimitive) isCons() bool {
 	return false
 }
 
-func (v *VPrimitive) isEmpty() bool {
+func (v *vPrimitive) isEmpty() bool {
 	return false
 }
 
-func (v *VPrimitive) isNumber() bool {
+func (v *vPrimitive) isNumber() bool {
 	return false
 }
 
-func (v *VPrimitive) isBool() bool {
+func (v *vPrimitive) isBool() bool {
 	return false
 }
 
-func (v *VPrimitive) isRef() bool {
+func (v *vPrimitive) isRef() bool {
 	return false
 }
 
-func (v *VPrimitive) isString() bool {
+func (v *vPrimitive) isString() bool {
 	return false
 }
 
-func (v *VPrimitive) isFunction() bool {
+func (v *vPrimitive) isFunction() bool {
 	return true
 }
 
-func (v *VPrimitive) isTrue() bool {
+func (v *vPrimitive) isTrue() bool {
 	return true
 }
 
-func (v *VPrimitive) isNil() bool {
+func (v *vPrimitive) isNil() bool {
 	return false
 }
 
-func (v *VPrimitive) isEqual(vv Value) bool {
+func (v *vPrimitive) isEqual(vv Value) bool {
 	return v == vv // pointer equality
 }
 
-func (v *VPrimitive) typ() string {
+func (v *vPrimitive) typ() string {
 	return "fun"
 }
 
-func (v *VPrimitive) getValue() Value {
+func (v *vPrimitive) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) setValue(cv Value) {
+func (v *vPrimitive) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) isArray() bool {
+func (v *vPrimitive) isArray() bool {
 	return false
 }
 
-func (v *VPrimitive) getArray() []Value {
+func (v *vPrimitive) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VPrimitive) isDict() bool {
+func (v *vPrimitive) isDict() bool {
 	return false
 }
 
-func (v *VPrimitive) getDict() map[string]Value {
+func (v *vPrimitive) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) display() string {
+func (v *vEmpty) display() string {
 	return "()"
 }
 
-func (v *VEmpty) displayCDR() string {
+func (v *vEmpty) displayCDR() string {
 	return ")"
 }
 
-func (v *VEmpty) intValue() int {
+func (v *vEmpty) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) strValue() string {
+func (v *vEmpty) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) boolValue() bool {
+func (v *vEmpty) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) apply(args []Value) (Value, error) {
+func (v *vEmpty) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VEmpty) str() string {
+func (v *vEmpty) str() string {
 	return fmt.Sprintf("VEmpty")
 }
 
-func (v *VEmpty) headValue() Value {
+func (v *vEmpty) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) tailValue() Value {
+func (v *vEmpty) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) isAtom() bool {
+func (v *vEmpty) isAtom() bool {
 	return false
 }
 
-func (v *VEmpty) isSymbol() bool {
+func (v *vEmpty) isSymbol() bool {
 	return false
 }
 
-func (v *VEmpty) isCons() bool {
+func (v *vEmpty) isCons() bool {
 	return false
 }
 
-func (v *VEmpty) isEmpty() bool {
+func (v *vEmpty) isEmpty() bool {
 	return true
 }
 
-func (v *VEmpty) isNumber() bool {
+func (v *vEmpty) isNumber() bool {
 	return false
 }
 
-func (v *VEmpty) isBool() bool {
+func (v *vEmpty) isBool() bool {
 	return false
 }
 
-func (v *VEmpty) isRef() bool {
+func (v *vEmpty) isRef() bool {
 	return false
 }
 
-func (v *VEmpty) isString() bool {
+func (v *vEmpty) isString() bool {
 	return false
 }
 
-func (v *VEmpty) isFunction() bool {
+func (v *vEmpty) isFunction() bool {
 	return false
 }
 
-func (v *VEmpty) isTrue() bool {
+func (v *vEmpty) isTrue() bool {
 	return false
 }
 
-func (v *VEmpty) isNil() bool {
+func (v *vEmpty) isNil() bool {
 	return false
 }
 
-func (v *VEmpty) isEqual(vv Value) bool {
+func (v *vEmpty) isEqual(vv Value) bool {
 	return vv.isEmpty()
 }
 
-func (v *VEmpty) typ() string {
+func (v *vEmpty) typ() string {
 	return "list"
 }
 
-func (v *VEmpty) getValue() Value {
+func (v *vEmpty) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) setValue(cv Value) {
+func (v *vEmpty) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) isArray() bool {
+func (v *vEmpty) isArray() bool {
 	return false
 }
 
-func (v *VEmpty) getArray() []Value {
+func (v *vEmpty) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VEmpty) isDict() bool {
+func (v *vEmpty) isDict() bool {
 	return false
 }
 
-func (v *VEmpty) getDict() map[string]Value {
+func (v *vEmpty) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) display() string {
+func (v *vCons) display() string {
 	return "(" + v.head.display() + v.tail.displayCDR()
 }
 
-func (v *VCons) displayCDR() string {
+func (v *vCons) displayCDR() string {
 	return " " + v.head.display() + v.tail.displayCDR()
 }
 
-func (v *VCons) intValue() int {
+func (v *vCons) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) strValue() string {
+func (v *vCons) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) boolValue() bool {
+func (v *vCons) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) apply(args []Value) (Value, error) {
+func (v *vCons) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VCons) str() string {
+func (v *vCons) str() string {
 	return fmt.Sprintf("VCons[%s %s]", v.head.str(), v.tail.str())
 }
 
-func (v *VCons) headValue() Value {
+func (v *vCons) headValue() Value {
 	return v.head
 }
 
-func (v *VCons) tailValue() Value {
+func (v *vCons) tailValue() Value {
 	return v.tail
 }
 
-func (v *VCons) isAtom() bool {
+func (v *vCons) isAtom() bool {
 	return false
 }
 
-func (v *VCons) isSymbol() bool {
+func (v *vCons) isSymbol() bool {
 	return false
 }
 
-func (v *VCons) isCons() bool {
+func (v *vCons) isCons() bool {
 	return true
 }
 
-func (v *VCons) isEmpty() bool {
+func (v *vCons) isEmpty() bool {
 	return false
 }
 
-func (v *VCons) isNumber() bool {
+func (v *vCons) isNumber() bool {
 	return false
 }
 
-func (v *VCons) isBool() bool {
+func (v *vCons) isBool() bool {
 	return false
 }
 
-func (v *VCons) isRef() bool {
+func (v *vCons) isRef() bool {
 	return false
 }
 
-func (v *VCons) isString() bool {
+func (v *vCons) isString() bool {
 	return false
 }
 
-func (v *VCons) isFunction() bool {
+func (v *vCons) isFunction() bool {
 	return false
 }
 
-func (v *VCons) isTrue() bool {
+func (v *vCons) isTrue() bool {
 	return true
 }
 
-func (v *VCons) isNil() bool {
+func (v *vCons) isNil() bool {
 	return false
 }
 
-func (v *VCons) isEqual(vv Value) bool {
+func (v *vCons) isEqual(vv Value) bool {
 	if !vv.isCons() {
 		return false
 	}
@@ -641,167 +699,167 @@ func (v *VCons) isEqual(vv Value) bool {
 	return curr1.isEqual(curr2) // should both be empty at the end
 }
 
-func (v *VCons) typ() string {
+func (v *vCons) typ() string {
 	return "list"
 }
 
-func (v *VCons) getValue() Value {
+func (v *vCons) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) setValue(cv Value) {
+func (v *vCons) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) isArray() bool {
+func (v *vCons) isArray() bool {
 	return false
 }
 
-func (v *VCons) getArray() []Value {
+func (v *vCons) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VCons) isDict() bool {
+func (v *vCons) isDict() bool {
 	return false
 }
 
-func (v *VCons) getDict() map[string]Value {
+func (v *vCons) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) display() string {
+func (v *vSymbol) display() string {
 	return v.name
 }
 
-func (v *VSymbol) displayCDR() string {
+func (v *vSymbol) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) intValue() int {
+func (v *vSymbol) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) strValue() string {
+func (v *vSymbol) strValue() string {
 	return v.name
 }
 
-func (v *VSymbol) boolValue() bool {
+func (v *vSymbol) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) apply(args []Value) (Value, error) {
+func (v *vSymbol) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VSymbol) str() string {
+func (v *vSymbol) str() string {
 	return fmt.Sprintf("VSymbol[%s]", v.name)
 }
 
-func (v *VSymbol) headValue() Value {
+func (v *vSymbol) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) tailValue() Value {
+func (v *vSymbol) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) isAtom() bool {
+func (v *vSymbol) isAtom() bool {
 	return true
 }
 
-func (v *VSymbol) isSymbol() bool {
+func (v *vSymbol) isSymbol() bool {
 	return true
 }
 
-func (v *VSymbol) isCons() bool {
+func (v *vSymbol) isCons() bool {
 	return false
 }
 
-func (v *VSymbol) isEmpty() bool {
+func (v *vSymbol) isEmpty() bool {
 	return false
 }
 
-func (v *VSymbol) isNumber() bool {
+func (v *vSymbol) isNumber() bool {
 	return false
 }
 
-func (v *VSymbol) isBool() bool {
+func (v *vSymbol) isBool() bool {
 	return false
 }
 
-func (v *VSymbol) isRef() bool {
+func (v *vSymbol) isRef() bool {
 	return false
 }
 
-func (v *VSymbol) isString() bool {
+func (v *vSymbol) isString() bool {
 	return false
 }
 
-func (v *VSymbol) isFunction() bool {
+func (v *vSymbol) isFunction() bool {
 	return false
 }
 
-func (v *VSymbol) isTrue() bool {
+func (v *vSymbol) isTrue() bool {
 	return true
 }
 
-func (v *VSymbol) isNil() bool {
+func (v *vSymbol) isNil() bool {
 	return false
 }
 
-func (v *VSymbol) isEqual(vv Value) bool {
+func (v *vSymbol) isEqual(vv Value) bool {
 	return vv.isSymbol() && v.strValue() == vv.strValue()
 }
 
-func (v *VSymbol) typ() string {
+func (v *vSymbol) typ() string {
 	return "symbol"
 }
 
-func (v *VSymbol) getValue() Value {
+func (v *vSymbol) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) setValue(cv Value) {
+func (v *vSymbol) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) isArray() bool {
+func (v *vSymbol) isArray() bool {
 	return false
 }
 
-func (v *VSymbol) getArray() []Value {
+func (v *vSymbol) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VSymbol) isDict() bool {
+func (v *vSymbol) isDict() bool {
 	return false
 }
 
-func (v *VSymbol) getDict() map[string]Value {
+func (v *vSymbol) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) display() string {
+func (v *vFunction) display() string {
 	return fmt.Sprintf("#<fun %s ...>", strings.Join(v.params, " "))
 }
 
-func (v *VFunction) displayCDR() string {
+func (v *vFunction) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) intValue() int {
+func (v *vFunction) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) strValue() string {
+func (v *vFunction) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) boolValue() bool {
+func (v *vFunction) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) apply(args []Value) (Value, error) {
+func (v *vFunction) apply(args []Value) (Value, error) {
 	if len(v.params) != len(args) {
 		return nil, fmt.Errorf("Wrong number of arguments to application to %s", v.str())
 	}
@@ -809,439 +867,439 @@ func (v *VFunction) apply(args []Value) (Value, error) {
 	return v.body.eval(newEnv)
 }
 
-func (v *VFunction) str() string {
+func (v *vFunction) str() string {
 	return fmt.Sprintf("VFunction[[%s] %s]", strings.Join(v.params, " "), v.body.str())
 }
 
-func (v *VFunction) headValue() Value {
+func (v *vFunction) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) tailValue() Value {
+func (v *vFunction) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) isAtom() bool {
+func (v *vFunction) isAtom() bool {
 	return false
 }
 
-func (v *VFunction) isSymbol() bool {
+func (v *vFunction) isSymbol() bool {
 	return false
 }
 
-func (v *VFunction) isCons() bool {
+func (v *vFunction) isCons() bool {
 	return false
 }
 
-func (v *VFunction) isEmpty() bool {
+func (v *vFunction) isEmpty() bool {
 	return false
 }
 
-func (v *VFunction) isNumber() bool {
+func (v *vFunction) isNumber() bool {
 	return false
 }
 
-func (v *VFunction) isBool() bool {
+func (v *vFunction) isBool() bool {
 	return false
 }
 
-func (v *VFunction) isRef() bool {
+func (v *vFunction) isRef() bool {
 	return false
 }
 
-func (v *VFunction) isString() bool {
+func (v *vFunction) isString() bool {
 	return false
 }
 
-func (v *VFunction) isFunction() bool {
+func (v *vFunction) isFunction() bool {
 	return true
 }
 
-func (v *VFunction) isTrue() bool {
+func (v *vFunction) isTrue() bool {
 	return true
 }
 
-func (v *VFunction) isNil() bool {
+func (v *vFunction) isNil() bool {
 	return false
 }
 
-func (v *VFunction) isEqual(vv Value) bool {
+func (v *vFunction) isEqual(vv Value) bool {
 	return v == vv // pointer equality
 }
 
-func (v *VFunction) typ() string {
+func (v *vFunction) typ() string {
 	return "fun"
 }
 
-func (v *VFunction) getValue() Value {
+func (v *vFunction) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) setValue(cv Value) {
+func (v *vFunction) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) isArray() bool {
+func (v *vFunction) isArray() bool {
 	return false
 }
 
-func (v *VFunction) getArray() []Value {
+func (v *vFunction) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VFunction) isDict() bool {
+func (v *vFunction) isDict() bool {
 	return false
 }
 
-func (v *VFunction) getDict() map[string]Value {
+func (v *vFunction) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) display() string {
+func (v *vString) display() string {
 	return "\"" + v.val + "\""
 }
 
-func (v *VString) displayCDR() string {
+func (v *vString) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) intValue() int {
+func (v *vString) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) strValue() string {
+func (v *vString) strValue() string {
 	return v.val
 }
 
-func (v *VString) boolValue() bool {
+func (v *vString) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) apply(args []Value) (Value, error) {
+func (v *vString) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VString) str() string {
+func (v *vString) str() string {
 	return fmt.Sprintf("VString[%s]", v.str())
 }
 
-func (v *VString) headValue() Value {
+func (v *vString) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) tailValue() Value {
+func (v *vString) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) isAtom() bool {
+func (v *vString) isAtom() bool {
 	return true
 }
 
-func (v *VString) isSymbol() bool {
+func (v *vString) isSymbol() bool {
 	return false
 }
 
-func (v *VString) isCons() bool {
+func (v *vString) isCons() bool {
 	return false
 }
 
-func (v *VString) isEmpty() bool {
+func (v *vString) isEmpty() bool {
 	return false
 }
 
-func (v *VString) isNumber() bool {
+func (v *vString) isNumber() bool {
 	return false
 }
 
-func (v *VString) isBool() bool {
+func (v *vString) isBool() bool {
 	return false
 }
 
-func (v *VString) isRef() bool {
+func (v *vString) isRef() bool {
 	return false
 }
 
-func (v *VString) isString() bool {
+func (v *vString) isString() bool {
 	return true
 }
 
-func (v *VString) isFunction() bool {
+func (v *vString) isFunction() bool {
 	return false
 }
 
-func (v *VString) isTrue() bool {
+func (v *vString) isTrue() bool {
 	return (v.val != "")
 }
 
-func (v *VString) isNil() bool {
+func (v *vString) isNil() bool {
 	return false
 }
 
-func (v *VString) isEqual(vv Value) bool {
+func (v *vString) isEqual(vv Value) bool {
 	return vv.isString() && v.strValue() == vv.strValue()
 }
 
-func (v *VString) typ() string {
+func (v *vString) typ() string {
 	return "string"
 }
 
-func (v *VString) getValue() Value {
+func (v *vString) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) setValue(cv Value) {
+func (v *vString) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) isArray() bool {
+func (v *vString) isArray() bool {
 	return false
 }
 
-func (v *VString) getArray() []Value {
+func (v *vString) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VString) isDict() bool {
+func (v *vString) isDict() bool {
 	return false
 }
 
-func (v *VString) getDict() map[string]Value {
+func (v *vString) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) display() string {
+func (v *vNil) display() string {
 	// figure out if this is the right thing?
 	return "#nil"
 }
 
-func (v *VNil) displayCDR() string {
+func (v *vNil) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) intValue() int {
+func (v *vNil) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) strValue() string {
+func (v *vNil) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) boolValue() bool {
+func (v *vNil) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) apply(args []Value) (Value, error) {
+func (v *vNil) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
-func (v *VNil) str() string {
+func (v *vNil) str() string {
 	return fmt.Sprintf("VNil")
 }
 
-func (v *VNil) headValue() Value {
+func (v *vNil) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) tailValue() Value {
+func (v *vNil) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) isAtom() bool {
+func (v *vNil) isAtom() bool {
 	return false
 }
 
-func (v *VNil) isSymbol() bool {
+func (v *vNil) isSymbol() bool {
 	return false
 }
 
-func (v *VNil) isCons() bool {
+func (v *vNil) isCons() bool {
 	return false
 }
 
-func (v *VNil) isEmpty() bool {
+func (v *vNil) isEmpty() bool {
 	return false
 }
 
-func (v *VNil) isNumber() bool {
+func (v *vNil) isNumber() bool {
 	return false
 }
 
-func (v *VNil) isBool() bool {
+func (v *vNil) isBool() bool {
 	return false
 }
 
-func (v *VNil) isRef() bool {
+func (v *vNil) isRef() bool {
 	return false
 }
 
-func (v *VNil) isString() bool {
+func (v *vNil) isString() bool {
 	return false
 }
 
-func (v *VNil) isFunction() bool {
+func (v *vNil) isFunction() bool {
 	return false
 }
 
-func (v *VNil) isTrue() bool {
+func (v *vNil) isTrue() bool {
 	return false
 }
 
-func (v *VNil) isNil() bool {
+func (v *vNil) isNil() bool {
 	return true
 }
 
-func (v *VNil) isEqual(vv Value) bool {
+func (v *vNil) isEqual(vv Value) bool {
 	return vv.isNil()
 }
 
-func (v *VNil) typ() string {
+func (v *vNil) typ() string {
 	return "nil"
 }
 
-func (v *VNil) getValue() Value {
+func (v *vNil) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) setValue(cv Value) {
+func (v *vNil) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) isArray() bool {
+func (v *vNil) isArray() bool {
 	return false
 }
 
-func (v *VNil) getArray() []Value {
+func (v *vNil) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VNil) isDict() bool {
+func (v *vNil) isDict() bool {
 	return false
 }
 
-func (v *VNil) getDict() map[string]Value {
+func (v *vNil) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) display() string {
+func (v *vReference) display() string {
 	return fmt.Sprintf("#<ref %s>", v.content.display())
 }
 
-func (v *VReference) displayCDR() string {
+func (v *vReference) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) intValue() int {
+func (v *vReference) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) strValue() string {
+func (v *vReference) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) boolValue() bool {
+func (v *vReference) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) apply(args []Value) (Value, error) {
+func (v *vReference) apply(args []Value) (Value, error) {
 	if len(args) > 1 {
 		return nil, fmt.Errorf("too many arguments %d to ref update", len(args))
 	}
 	if len(args) == 1 {
 		v.content = args[0]
-		return &VNil{}, nil
+		return &vNil{}, nil
 	}
 	return v.content, nil
 }
 
-func (v *VReference) str() string {
+func (v *vReference) str() string {
 	return fmt.Sprintf("VReference[%s]", v.content.str())
 }
 
-func (v *VReference) headValue() Value {
+func (v *vReference) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) tailValue() Value {
+func (v *vReference) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) isAtom() bool {
+func (v *vReference) isAtom() bool {
 	return false // ?
 }
 
-func (v *VReference) isSymbol() bool {
+func (v *vReference) isSymbol() bool {
 	return false
 }
 
-func (v *VReference) isCons() bool {
+func (v *vReference) isCons() bool {
 	return false
 }
 
-func (v *VReference) isEmpty() bool {
+func (v *vReference) isEmpty() bool {
 	return false
 }
 
-func (v *VReference) isNumber() bool {
+func (v *vReference) isNumber() bool {
 	return false
 }
 
-func (v *VReference) isBool() bool {
+func (v *vReference) isBool() bool {
 	return false
 }
 
-func (v *VReference) isRef() bool {
+func (v *vReference) isRef() bool {
 	return true
 }
 
-func (v *VReference) isString() bool {
+func (v *vReference) isString() bool {
 	return false
 }
 
-func (v *VReference) isFunction() bool {
+func (v *vReference) isFunction() bool {
 	return false
 }
 
-func (v *VReference) isTrue() bool {
+func (v *vReference) isTrue() bool {
 	return false
 }
 
-func (v *VReference) isNil() bool {
+func (v *vReference) isNil() bool {
 	return false
 }
 
-func (v *VReference) isEqual(vv Value) bool {
+func (v *vReference) isEqual(vv Value) bool {
 	return v == vv // pointer equality
 }
 
-func (v *VReference) typ() string {
+func (v *vReference) typ() string {
 	return "reference"
 }
 
-func (v *VReference) getValue() Value {
+func (v *vReference) getValue() Value {
 	return v.content
 }
 
-func (v *VReference) setValue(cv Value) {
+func (v *vReference) setValue(cv Value) {
 	v.content = cv
 }
 
-func (v *VReference) isArray() bool {
+func (v *vReference) isArray() bool {
 	return false
 }
 
-func (v *VReference) getArray() []Value {
+func (v *vReference) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VReference) isDict() bool {
+func (v *vReference) isDict() bool {
 	return false
 }
 
-func (v *VReference) getDict() map[string]Value {
+func (v *vReference) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) display() string {
+func (v *vArray) display() string {
 	s := make([]string, len(v.content))
 	for i, vv := range v.content {
 		s[i] = vv.display()
@@ -1249,23 +1307,23 @@ func (v *VArray) display() string {
 	return fmt.Sprintf("#[%s]", strings.Join(s, " "))
 }
 
-func (v *VArray) displayCDR() string {
+func (v *vArray) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) intValue() int {
+func (v *vArray) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) strValue() string {
+func (v *vArray) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) boolValue() bool {
+func (v *vArray) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) apply(args []Value) (Value, error) {
+func (v *vArray) apply(args []Value) (Value, error) {
 	if len(args) < 1 || !args[0].isNumber() {
 		return nil, fmt.Errorf("array indexing requires an index")
 	}
@@ -1278,12 +1336,12 @@ func (v *VArray) apply(args []Value) (Value, error) {
 	}
 	if len(args) == 2 {
 		v.content[idx] = args[1]
-		return &VNil{}, nil
+		return &vNil{}, nil
 	}
 	return v.content[idx], nil
 }
 
-func (v *VArray) str() string {
+func (v *vArray) str() string {
 	s := make([]string, len(v.content))
 	for i, vv := range v.content {
 		s[i] = vv.str()
@@ -1291,59 +1349,59 @@ func (v *VArray) str() string {
 	return fmt.Sprintf("VArray[%s]", strings.Join(s, " "))
 }
 
-func (v *VArray) headValue() Value {
+func (v *vArray) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) tailValue() Value {
+func (v *vArray) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) isAtom() bool {
+func (v *vArray) isAtom() bool {
 	return false // ?
 }
 
-func (v *VArray) isSymbol() bool {
+func (v *vArray) isSymbol() bool {
 	return false
 }
 
-func (v *VArray) isCons() bool {
+func (v *vArray) isCons() bool {
 	return false
 }
 
-func (v *VArray) isEmpty() bool {
+func (v *vArray) isEmpty() bool {
 	return false
 }
 
-func (v *VArray) isNumber() bool {
+func (v *vArray) isNumber() bool {
 	return false
 }
 
-func (v *VArray) isBool() bool {
+func (v *vArray) isBool() bool {
 	return false
 }
 
-func (v *VArray) isRef() bool {
+func (v *vArray) isRef() bool {
 	return false
 }
 
-func (v *VArray) isString() bool {
+func (v *vArray) isString() bool {
 	return false
 }
 
-func (v *VArray) isFunction() bool {
+func (v *vArray) isFunction() bool {
 	return false
 }
 
-func (v *VArray) isTrue() bool {
+func (v *vArray) isTrue() bool {
 	return false
 }
 
-func (v *VArray) isNil() bool {
+func (v *vArray) isNil() bool {
 	return false
 }
 
-func (v *VArray) isEqual(vv Value) bool {
+func (v *vArray) isEqual(vv Value) bool {
 	return v == vv // pointer equality because arrays will be mutable
 	/*
 		if !vv.isArray() || len(v.content) != len(vv.getArray()) {
@@ -1358,35 +1416,35 @@ func (v *VArray) isEqual(vv Value) bool {
 	*/
 }
 
-func (v *VArray) typ() string {
+func (v *vArray) typ() string {
 	return "array"
 }
 
-func (v *VArray) getValue() Value {
+func (v *vArray) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) setValue(cv Value) {
+func (v *vArray) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VArray) isArray() bool {
+func (v *vArray) isArray() bool {
 	return true
 }
 
-func (v *VArray) getArray() []Value {
+func (v *vArray) getArray() []Value {
 	return v.content
 }
 
-func (v *VArray) isDict() bool {
+func (v *vArray) isDict() bool {
 	return false
 }
 
-func (v *VArray) getDict() map[string]Value {
+func (v *vArray) getDict() map[string]Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) display() string {
+func (v *vDict) display() string {
 	s := make([]string, len(v.content))
 	i := 0
 	for k, vv := range v.content {
@@ -1396,23 +1454,23 @@ func (v *VDict) display() string {
 	return fmt.Sprintf("#(%s)", strings.Join(s, " "))
 }
 
-func (v *VDict) displayCDR() string {
+func (v *vDict) displayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) intValue() int {
+func (v *vDict) intValue() int {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) strValue() string {
+func (v *vDict) strValue() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) boolValue() bool {
+func (v *vDict) boolValue() bool {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) apply(args []Value) (Value, error) {
+func (v *vDict) apply(args []Value) (Value, error) {
 	if len(args) < 1 || !args[0].isSymbol() {
 		return nil, fmt.Errorf("dict indexing requires a key")
 	}
@@ -1422,7 +1480,7 @@ func (v *VDict) apply(args []Value) (Value, error) {
 	key := args[0].strValue()
 	if len(args) == 2 {
 		v.content[key] = args[1]
-		return &VNil{}, nil
+		return &vNil{}, nil
 	}
 	result, ok := v.content[key]
 	if !ok {
@@ -1431,7 +1489,7 @@ func (v *VDict) apply(args []Value) (Value, error) {
 	return result, nil
 }
 
-func (v *VDict) str() string {
+func (v *vDict) str() string {
 	s := make([]string, len(v.content))
 	i := 0
 	for k, vv := range v.content {
@@ -1441,86 +1499,86 @@ func (v *VDict) str() string {
 	return fmt.Sprintf("VDict[%s]", strings.Join(s, " "))
 }
 
-func (v *VDict) headValue() Value {
+func (v *vDict) headValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) tailValue() Value {
+func (v *vDict) tailValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) isAtom() bool {
+func (v *vDict) isAtom() bool {
 	return false // ?
 }
 
-func (v *VDict) isSymbol() bool {
+func (v *vDict) isSymbol() bool {
 	return false
 }
 
-func (v *VDict) isCons() bool {
+func (v *vDict) isCons() bool {
 	return false
 }
 
-func (v *VDict) isEmpty() bool {
+func (v *vDict) isEmpty() bool {
 	return false
 }
 
-func (v *VDict) isNumber() bool {
+func (v *vDict) isNumber() bool {
 	return false
 }
 
-func (v *VDict) isBool() bool {
+func (v *vDict) isBool() bool {
 	return false
 }
 
-func (v *VDict) isRef() bool {
+func (v *vDict) isRef() bool {
 	return false
 }
 
-func (v *VDict) isString() bool {
+func (v *vDict) isString() bool {
 	return false
 }
 
-func (v *VDict) isFunction() bool {
+func (v *vDict) isFunction() bool {
 	return false
 }
 
-func (v *VDict) isTrue() bool {
+func (v *vDict) isTrue() bool {
 	return false
 }
 
-func (v *VDict) isNil() bool {
+func (v *vDict) isNil() bool {
 	return false
 }
 
-func (v *VDict) isEqual(vv Value) bool {
+func (v *vDict) isEqual(vv Value) bool {
 	return v == vv // pointer equality due to mutability
 }
 
-func (v *VDict) typ() string {
+func (v *vDict) typ() string {
 	return "dict"
 }
 
-func (v *VDict) getValue() Value {
+func (v *vDict) getValue() Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) setValue(cv Value) {
+func (v *vDict) setValue(cv Value) {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) isArray() bool {
+func (v *vDict) isArray() bool {
 	return false
 }
 
-func (v *VDict) getArray() []Value {
+func (v *vDict) getArray() []Value {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *VDict) isDict() bool {
+func (v *vDict) isDict() bool {
 	return true
 }
 
-func (v *VDict) getDict() map[string]Value {
+func (v *vDict) getDict() map[string]Value {
 	return v.content
 }

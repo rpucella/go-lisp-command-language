@@ -31,7 +31,7 @@ func layer(env *Env, names []string, values []Value) *Env {
 		if values != nil && i < len(values) {
 			bindings[name] = values[i]
 		} else {
-			bindings[name] = &VNil{}
+			bindings[name] = &vNil{}
 		}
 	}
 	return &Env{bindings: bindings, previous: env}

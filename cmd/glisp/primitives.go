@@ -23,21 +23,21 @@ func listLength(v Value) int {
 func listAppend(v1 Value, v2 Value) Value {
 	current := v1
 	var result Value = nil
-	var current_result *VCons = nil
+	var current_result MutableCons = nil
 	for current.isCons() {
-		cell := &VCons{head: current.headValue(), tail: nil}
+		cell := NewMutableCons(current.headValue(), nil)
 		current = current.tailValue()
 		if current_result == nil {
 			result = cell
 		} else {
-			current_result.tail = cell
+			current_result.setTail(cell)
 		}
 		current_result = cell
 	}
 	if current_result == nil {
 		return v2
 	}
-	current_result.tail = v2
+	current_result.setTail(v2)
 	return result
 }
 
@@ -53,13 +53,13 @@ func allConses(vs []Value) bool {
 func corePrimitives() map[string]Value {
 	bindings := map[string]Value{}
 	for _, d := range CORE_PRIMITIVES {
-		bindings[d.name] = &VPrimitive{d.name, mkPrimitive(d)}
+		bindings[d.name] = NewPrimitive(d.name, mkPrimitive(d))
 	}
 	return bindings
 }
 
 func mkPrimitive(d PrimitiveDesc) func([]Value) (Value, error) {
-	return func(args []Value) (Value, error) {
+	f := func(args []Value) (Value, error) {
 		if err := checkMinArgs(d.name, args, d.min); err != nil {
 			return nil, err
 		}
@@ -70,6 +70,7 @@ func mkPrimitive(d PrimitiveDesc) func([]Value) (Value, error) {
 		}
 		return d.prim(d.name, args)
 	}
+	return f
 }
 
 func checkArgType(name string, arg Value, pred func(Value) bool) error {
@@ -135,7 +136,7 @@ func mkNumPredicate(pred func(int, int) bool) func(string, []Value) (Value, erro
 		if err := checkArgType(name, args[1], isInt); err != nil {
 			return nil, err
 		}
-		return &VBoolean{pred(args[0].intValue(), args[1].intValue())}, nil
+		return NewBoolean(pred(args[0].intValue(), args[1].intValue())), nil
 	}
 }
 
@@ -144,7 +145,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 	PrimitiveDesc{
 		"type", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VSymbol{args[0].typ()}, nil
+			return NewSymbol(args[0].typ()), nil
 		},
 	},
 
@@ -158,7 +159,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				}
 				v += arg.intValue()
 			}
-			return &VInteger{v}, nil
+			return NewInteger(v), nil
 		},
 	},
 
@@ -172,7 +173,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				}
 				v *= arg.intValue()
 			}
-			return &VInteger{v}, nil
+			return NewInteger(v), nil
 		},
 	},
 
@@ -190,7 +191,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			} else {
 				v = -v
 			}
-			return &VInteger{v}, nil
+			return NewInteger(v), nil
 		},
 	},
 
@@ -199,10 +200,10 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			var reference Value = args[0]
 			for _, v := range args[1:] {
 				if !reference.isEqual(v) {
-					return &VBoolean{false}, nil
+					return NewBoolean(false), nil
 				}
 			}
-			return &VBoolean{true}, nil
+			return NewBoolean(true), nil
 		},
 	},
 
@@ -224,7 +225,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 
 	PrimitiveDesc{"not", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{!args[0].isTrue()}, nil
+			return NewBoolean(!args[0].isTrue()), nil
 		},
 	},
 
@@ -238,7 +239,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				}
 				v += arg.strValue()
 			}
-			return &VString{v}, nil
+			return NewSymbol(v), nil
 		},
 	},
 
@@ -247,7 +248,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if err := checkArgType(name, args[0], isString); err != nil {
 				return nil, err
 			}
-			return &VInteger{len(args[0].strValue())}, nil
+			return NewInteger(len(args[0].strValue())), nil
 		},
 	},
 
@@ -256,7 +257,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if err := checkArgType(name, args[0], isString); err != nil {
 				return nil, err
 			}
-			return &VString{strings.ToLower(args[0].strValue())}, nil
+			return NewSymbol(strings.ToLower(args[0].strValue())), nil
 		},
 	},
 
@@ -265,7 +266,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if err := checkArgType(name, args[0], isString); err != nil {
 				return nil, err
 			}
-			return &VString{strings.ToUpper(args[0].strValue())}, nil
+			return NewSymbol(strings.ToUpper(args[0].strValue())), nil
 		},
 	},
 
@@ -290,9 +291,9 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			}
 			// or perhaps raise an exception
 			if end < start {
-				return &VString{""}, nil
+				return NewSymbol(""), nil
 			}
-			return &VString{args[0].strValue()[start:end]}, nil
+			return NewSymbol(args[0].strValue()[start:end]), nil
 		},
 	},
 
@@ -322,7 +323,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if err := checkArgType(name, args[1], isList); err != nil {
 				return nil, err
 			}
-			return &VCons{head: args[0], tail: args[1]}, nil
+			return NewCons(args[0], args[1]), nil
 		},
 	},
 
@@ -330,7 +331,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 		"append", 0, -1,
 		func(name string, args []Value) (Value, error) {
 			if len(args) == 0 {
-				return &VEmpty{}, nil
+				return NewEmpty(), nil
 			}
 			if err := checkArgType(name, args[len(args)-1], isList); err != nil {
 				return nil, err
@@ -351,10 +352,10 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if err := checkArgType(name, args[0], isList); err != nil {
 				return nil, err
 			}
-			var result Value = &VEmpty{}
+			var result Value = NewEmpty()
 			current := args[0]
 			for current.isCons() {
-				result = &VCons{head: current.headValue(), tail: result}
+				result = NewCons(current.headValue(), result)
 				current = current.tailValue()
 			}
 			if !current.isEmpty() {
@@ -390,9 +391,9 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 
 	PrimitiveDesc{"list", 0, -1,
 		func(name string, args []Value) (Value, error) {
-			var result Value = &VEmpty{}
+			var result Value = NewEmpty()
 			for i := len(args) - 1; i >= 0; i -= 1 {
-				result = &VCons{head: args[i], tail: result}
+				result = NewCons(args[i], result)
 			}
 			return result, nil
 		},
@@ -412,7 +413,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if !current.isEmpty() {
 				return nil, fmt.Errorf("%s - malformed list", name)
 			}
-			return &VInteger{count}, nil
+			return NewInteger(count), nil
 		},
 	},
 
@@ -451,7 +452,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				}
 			}
 			var result Value = nil
-			var current_result *VCons = nil
+			var current_result MutableCons = nil
 			currents := make([]Value, len(args)-1)
 			firsts := make([]Value, len(args)-1)
 			for i := range args[1:] {
@@ -465,11 +466,11 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				if err != nil {
 					return nil, err
 				}
-				cell := &VCons{head: v, tail: nil}
+				cell := NewMutableCons(v, nil)
 				if current_result == nil {
 					result = cell
 				} else {
-					current_result.tail = cell
+					current_result.setTail(cell)
 				}
 				current_result = cell
 				for i := range currents {
@@ -477,9 +478,9 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				}
 			}
 			if current_result == nil {
-				return &VEmpty{}, nil
+				return NewEmpty(), nil
 			}
-			current_result.tail = &VEmpty{}
+			current_result.setTail(NewEmpty())
 			return result, nil
 		},
 	},
@@ -512,7 +513,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 					currents[i] = currents[i].tailValue()
 				}
 			}
-			return &VNil{}, nil
+			return NewNil(), nil
 		},
 	},
 
@@ -525,7 +526,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				return nil, err
 			}
 			var result Value = nil
-			var current_result *VCons = nil
+			var current_result MutableCons = nil
 			current := args[1]
 			for current.isCons() {
 				v, err := args[0].apply([]Value{current.headValue()})
@@ -533,11 +534,11 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 					return nil, err
 				}
 				if v.isTrue() {
-					cell := &VCons{head: current.headValue(), tail: nil}
+					cell := NewMutableCons(current.headValue(), nil)
 					if current_result == nil {
 						result = cell
 					} else {
-						current_result.tail = cell
+						current_result.setTail(cell)
 					}
 					current_result = cell
 				}
@@ -547,9 +548,9 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				return nil, fmt.Errorf("%s - malformed list", name)
 			}
 			if current_result == nil {
-				return &VEmpty{}, nil
+				return NewEmpty(), nil
 			}
-			current_result.tail = &VEmpty{}
+			current_result.setTail(NewEmpty())
 			return result, nil
 		},
 	},
@@ -562,11 +563,11 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			if err := checkArgType(name, args[1], isList); err != nil {
 				return nil, err
 			}
-			var temp Value = &VEmpty{}
+			var temp Value = NewEmpty()
 			// first reverse the list
 			current := args[1]
 			for current.isCons() {
-				temp = &VCons{head: current.headValue(), tail: temp}
+				temp = NewCons(current.headValue(), temp)
 				current = current.tailValue()
 			}
 			if !current.isEmpty() {
@@ -617,7 +618,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 
 	PrimitiveDesc{"ref", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VReference{args[0]}, nil
+			return NewReference(args[0]), nil
 		},
 	},
 
@@ -633,67 +634,67 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 	// 			return nil, err
 	// 		}
 	// 		args[0].setValue(args[1])
-	// 		return &VNil{}, nil
+	// 		return NewNil(), nil
 	// 	},
 	// },
 
 	PrimitiveDesc{"empty?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isEmpty()}, nil
+			return NewBoolean(args[0].isEmpty()), nil
 		},
 	},
 
 	PrimitiveDesc{"cons?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isCons()}, nil
+			return NewBoolean(args[0].isCons()), nil
 		},
 	},
 
 	PrimitiveDesc{"list?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isCons() || args[0].isEmpty()}, nil
+			return NewBoolean(args[0].isCons() || args[0].isEmpty()), nil
 		},
 	},
 
 	PrimitiveDesc{"number?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isNumber()}, nil
+			return NewBoolean(args[0].isNumber()), nil
 		},
 	},
 
 	PrimitiveDesc{"ref?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isRef()}, nil
+			return NewBoolean(args[0].isRef()), nil
 		},
 	},
 
 	PrimitiveDesc{"boolean?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isBool()}, nil
+			return NewBoolean(args[0].isBool()), nil
 		},
 	},
 
 	PrimitiveDesc{"string?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isString()}, nil
+			return NewBoolean(args[0].isString()), nil
 		},
 	},
 
 	PrimitiveDesc{"symbol?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isSymbol()}, nil
+			return NewBoolean(args[0].isSymbol()), nil
 		},
 	},
 
 	PrimitiveDesc{"function?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isFunction()}, nil
+			return NewBoolean(args[0].isFunction()), nil
 		},
 	},
 
 	PrimitiveDesc{"nil?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isNil()}, nil
+			return NewBoolean(args[0].isNil()), nil
 		},
 	},
 
@@ -703,13 +704,13 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 			for i, v := range args {
 				content[i] = v
 			}
-			return &VArray{content}, nil
+			return NewArray(content), nil
 		},
 	},
 
 	PrimitiveDesc{"array?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isArray()}, nil
+			return NewBoolean(args[0].isArray()), nil
 		},
 	},
 
@@ -725,13 +726,13 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 				}
 				content[v.headValue().strValue()] = v.tailValue().headValue()
 			}
-			return &VDict{content}, nil
+			return NewDict(content), nil
 		},
 	},
 
 	PrimitiveDesc{"dict?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return &VBoolean{args[0].isDict()}, nil
+			return NewBoolean(args[0].isDict()), nil
 		},
 	},
 
@@ -739,7 +740,7 @@ var CORE_PRIMITIVES = []PrimitiveDesc{
 		"quit", 0, 0,
 		func(name string, args []Value) (Value, error) {
 			bail()
-			return &VNil{}, nil
+			return NewNil(), nil
 		},
 	},
 }

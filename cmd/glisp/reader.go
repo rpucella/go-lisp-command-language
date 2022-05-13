@@ -49,7 +49,7 @@ func readSymbol(s string) (Value, string) {
 	if result == "" {
 		return nil, s
 	}
-	return &VSymbol{result}, rest
+	return &vSymbol{result}, rest
 }
 
 func readString(s string) (Value, string) {
@@ -58,7 +58,7 @@ func readString(s string) (Value, string) {
 	if result == "" {
 		return nil, s
 	}
-	return &VString{result[1 : len(result)-1]}, rest
+	return &vString{result[1 : len(result)-1]}, rest
 }
 
 func readInteger(s string) (Value, string) {
@@ -68,7 +68,7 @@ func readInteger(s string) (Value, string) {
 		return nil, s
 	}
 	num, _ := strconv.Atoi(result)
-	return &VInteger{num}, rest
+	return &vInteger{num}, rest
 }
 
 func readBoolean(s string) (Value, string) {
@@ -76,32 +76,32 @@ func readBoolean(s string) (Value, string) {
 	//       or treat # as a reader macro in some way?
 	result, rest := readToken(`#(?:t|T)`, s)
 	if result != "" {
-		return &VBoolean{true}, rest
+		return &vBoolean{true}, rest
 	}
 	result, rest = readToken(`#(?:f|F)`, s)
 	if result != "" {
-		return &VBoolean{false}, rest
+		return &vBoolean{false}, rest
 	}
 	return nil, s
 }
 
 func readList(s string) (Value, string, error) {
-	var current *VCons
-	var result *VCons
+	var current *vCons
+	var result *vCons
 	expr, rest, err := read(s)
 	for err == nil {
 		if current == nil {
-			result = &VCons{head: expr, tail: &VEmpty{}}
+			result = &vCons{head: expr, tail: &vEmpty{}}
 			current = result
 		} else {
-			temp := &VCons{head: expr, tail: current.tail}
+			temp := &vCons{head: expr, tail: current.tail}
 			current.tail = temp
 			current = temp
 		}
 		expr, rest, err = read(rest)
 	}
 	if current == nil {
-		return &VEmpty{}, rest, nil
+		return &vEmpty{}, rest, nil
 	}
 	return result, rest, nil
 }
@@ -135,7 +135,7 @@ func read(s string) (Value, string, error) {
 		if err != nil {
 			return nil, s, err
 		}
-		return &VCons{head: &VSymbol{"quote"}, tail: &VCons{head: expr, tail: &VEmpty{}}}, rest, nil
+		return &vCons{head: &vSymbol{"quote"}, tail: &vCons{head: expr, tail: &vEmpty{}}}, rest, nil
 	}
 	resultB, rest = readLP(s)
 	if resultB {

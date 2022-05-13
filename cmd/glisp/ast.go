@@ -7,56 +7,56 @@ import "strings"
 const DEF_VALUE = 0
 const DEF_FUNCTION = 1
 
-type Def struct {
+type astDef struct {
 	name   string
 	typ    int
 	params []string
-	body   AST
+	body   ast
 }
 
-type AST interface {
+type ast interface {
 	eval(*Env) (Value, error)
-	evalPartial(*Env) (*PartialResult, error)
+	evalPartial(*Env) (*partialResult, error)
 	str() string
 }
 
-type PartialResult struct {
-	exp AST
+type partialResult struct {
+	exp ast
 	env *Env
 	val Value // val is null when the result is still partial
 }
 
-type Literal struct {
+type astLiteral struct {
 	val Value
 }
 
-type Id struct {
+type astId struct {
 	name string
 }
 
-type If struct {
-	cnd AST
-	thn AST
-	els AST
+type astIf struct {
+	cnd ast
+	thn ast
+	els ast
 }
 
-type Apply struct {
-	fn   AST
-	args []AST
+type astApply struct {
+	fn   ast
+	args []ast
 }
 
-type Quote struct {
+type astQuote struct {
 	val Value
 }
 
-type LetRec struct {
+type astLetRec struct {
 	names  []string
 	params [][]string
-	bodies []AST
-	body   AST
+	bodies []ast
+	body   ast
 }
 
-func defaultEvalPartial(e AST, env *Env) (*PartialResult, error) {
+func defaultEvalPartial(e ast, env *Env) (*partialResult, error) {
 	// Partial evaluation
 	// Sometimes return an expression to evaluate next along
 	// with an environment for evaluation.
@@ -66,12 +66,12 @@ func defaultEvalPartial(e AST, env *Env) (*PartialResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PartialResult{nil, nil, v}, nil
+	return &partialResult{nil, nil, v}, nil
 }
 
-func defaultEval(e AST, env *Env) (Value, error) {
+func defaultEval(e ast, env *Env) (Value, error) {
 	// evaluation with tail call optimization
-	var currExp AST = e
+	var currExp ast = e
 	currEnv := env
 	for {
 		partial, err := currExp.evalPartial(currEnv)
@@ -86,55 +86,55 @@ func defaultEval(e AST, env *Env) (Value, error) {
 	}
 }
 
-func (e *Literal) eval(env *Env) (Value, error) {
+func (e *astLiteral) eval(env *Env) (Value, error) {
 	return e.val, nil
 }
 
-func (e *Literal) evalPartial(env *Env) (*PartialResult, error) {
+func (e *astLiteral) evalPartial(env *Env) (*partialResult, error) {
 	return defaultEvalPartial(e, env)
 }
 
-func (e *Literal) str() string {
-	return fmt.Sprintf("Literal[%s]", e.val.str())
+func (e *astLiteral) str() string {
+	return fmt.Sprintf("astLiteral[%s]", e.val.str())
 }
 
-func (e *Id) eval(env *Env) (Value, error) {
+func (e *astId) eval(env *Env) (Value, error) {
 	return find(env, e.name)
 }
 
-func (e *Id) evalPartial(env *Env) (*PartialResult, error) {
+func (e *astId) evalPartial(env *Env) (*partialResult, error) {
 	return defaultEvalPartial(e, env)
 }
 
-func (e *Id) str() string {
-	return fmt.Sprintf("Id[%s]", e.name)
+func (e *astId) str() string {
+	return fmt.Sprintf("astId[%s]", e.name)
 }
 
-func (e *If) eval(env *Env) (Value, error) {
+func (e *astIf) eval(env *Env) (Value, error) {
 	return defaultEval(e, env)
 }
 
-func (e *If) evalPartial(env *Env) (*PartialResult, error) {
+func (e *astIf) evalPartial(env *Env) (*partialResult, error) {
 	c, err := e.cnd.eval(env)
 	if err != nil {
 		return nil, err
 	}
 	if c.isTrue() {
-		return &PartialResult{e.thn, env, nil}, nil
+		return &partialResult{e.thn, env, nil}, nil
 	} else {
-		return &PartialResult{e.els, env, nil}, nil
+		return &partialResult{e.els, env, nil}, nil
 	}
 }
 
-func (e *If) str() string {
-	return fmt.Sprintf("If[%s %s %s]", e.cnd.str(), e.thn.str(), e.els.str())
+func (e *astIf) str() string {
+	return fmt.Sprintf("astIf[%s %s %s]", e.cnd.str(), e.thn.str(), e.els.str())
 }
 
-func (e *Apply) eval(env *Env) (Value, error) {
+func (e *astApply) eval(env *Env) (Value, error) {
 	return defaultEval(e, env)
 }
 
-func (e *Apply) evalPartial(env *Env) (*PartialResult, error) {
+func (e *astApply) evalPartial(env *Env) (*partialResult, error) {
 	f, err := e.fn.eval(env)
 	if err != nil {
 		return nil, err
@@ -146,45 +146,45 @@ func (e *Apply) evalPartial(env *Env) (*PartialResult, error) {
 			return nil, err
 		}
 	}
-	if ff, ok := f.(*VFunction); ok {
+	if ff, ok := f.(*vFunction); ok {
 		if len(ff.params) != len(args) {
 			return nil, fmt.Errorf("Wrong number of arguments to application to %s", ff.str())
 		}
 		newEnv := layer(ff.env, ff.params, args)
-		return &PartialResult{ff.body, newEnv, nil}, nil
+		return &partialResult{ff.body, newEnv, nil}, nil
 	}
 	v, err := f.apply(args)
 	if err != nil {
 		return nil, err
 	}
-	return &PartialResult{nil, nil, v}, nil
+	return &partialResult{nil, nil, v}, nil
 }
 
-func (e *Apply) str() string {
+func (e *astApply) str() string {
 	strArgs := ""
 	for _, item := range e.args {
 		strArgs += " " + item.str()
 	}
-	return fmt.Sprintf("Apply[%s%s]", e.fn.str(), strArgs)
+	return fmt.Sprintf("astApply[%s%s]", e.fn.str(), strArgs)
 }
 
-func (e *Quote) eval(env *Env) (Value, error) {
+func (e *astQuote) eval(env *Env) (Value, error) {
 	return e.val, nil
 }
 
-func (e *Quote) evalPartial(env *Env) (*PartialResult, error) {
+func (e *astQuote) evalPartial(env *Env) (*partialResult, error) {
 	return defaultEvalPartial(e, env)
 }
 
-func (e *Quote) str() string {
-	return fmt.Sprintf("Quote[%s]", e.val.str())
+func (e *astQuote) str() string {
+	return fmt.Sprintf("astQuote[%s]", e.val.str())
 }
 
-func (e *LetRec) eval(env *Env) (Value, error) {
+func (e *astLetRec) eval(env *Env) (Value, error) {
 	return defaultEval(e, env)
 }
 
-func (e *LetRec) evalPartial(env *Env) (*PartialResult, error) {
+func (e *astLetRec) evalPartial(env *Env) (*partialResult, error) {
 	if len(e.names) != len(e.params) || len(e.names) != len(e.bodies) {
 		return nil, errors.New("malformed letrec (names, params, bodies)")
 	}
@@ -192,16 +192,16 @@ func (e *LetRec) evalPartial(env *Env) (*PartialResult, error) {
 	// all names initially allocated #nil
 	newEnv := layer(env, e.names, nil)
 	for i, name := range e.names {
-		update(newEnv, name, &VFunction{e.params[i], e.bodies[i], newEnv})
+		update(newEnv, name, &vFunction{e.params[i], e.bodies[i], newEnv})
 	}
-	return &PartialResult{e.body, newEnv, nil}, nil
+	return &partialResult{e.body, newEnv, nil}, nil
 }
 
-func (e *LetRec) str() string {
+func (e *astLetRec) str() string {
 	bindings := make([]string, len(e.names))
 	for i := range e.names {
 		params := strings.Join(e.params[i], " ")
 		bindings[i] = fmt.Sprintf("[%s [%s] %s]", e.names[i], params, e.bodies[i].str())
 	}
-	return fmt.Sprintf("LetRec[%s %s]", strings.Join(bindings, " "), e.body.str())
+	return fmt.Sprintf("astLetRec[%s %s]", strings.Join(bindings, " "), e.body.str())
 }
