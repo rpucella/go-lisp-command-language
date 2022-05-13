@@ -37,7 +37,7 @@ func shell(env *Env) {
 		}
 		if d != nil {
 			if d.typ == DEF_FUNCTION { 
-				env.update(d.name, &VFunction{d.params, d.body, env})
+				update(env, d.name, &VFunction{d.params, d.body, env})
 				fmt.Println(d.name)
 				continue
 			}
@@ -47,7 +47,7 @@ func shell(env *Env) {
 					fmt.Println("EVAL ERROR -", err.Error())
 					continue
 				}
-				env.update(d.name, v)
+				update(env, d.name, v)
 				fmt.Println(d.name)
 				continue
 			}

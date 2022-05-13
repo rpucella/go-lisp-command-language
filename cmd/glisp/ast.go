@@ -99,7 +99,7 @@ func (e *Literal) str() string {
 }
 
 func (e *Id) eval(env *Env) (Value, error) {
-	return env.find(e.name)
+	return find(env, e.name)
 }
 
 func (e *Id) evalPartial(env *Env) (*PartialResult, error) {
@@ -150,7 +150,7 @@ func (e *Apply) evalPartial(env *Env) (*PartialResult, error) {
 		if len(ff.params) != len(args) {
 			return nil, fmt.Errorf("Wrong number of arguments to application to %s", ff.str())
 		}
-		newEnv := ff.env.layer(ff.params, args)
+		newEnv := layer(ff.env, ff.params, args)
 		return &PartialResult{ff.body, newEnv, nil}, nil
 	}
 	v, err := f.apply(args)
@@ -190,9 +190,9 @@ func (e *LetRec) evalPartial(env *Env) (*PartialResult, error) {
 	}
 	// create the environment that we'll share across the definitions
 	// all names initially allocated #nil
-	newEnv := env.layer(e.names, nil)
+	newEnv := layer(env, e.names, nil)
 	for i, name := range e.names {
-		newEnv.update(name, &VFunction{e.params[i], e.bodies[i], newEnv})
+		update(newEnv, name, &VFunction{e.params[i], e.bodies[i], newEnv})
 	}
 	return &PartialResult{e.body, newEnv, nil}, nil
 }
