@@ -36,4 +36,3 @@ func layer(env *Env, names []string, values []Value) *Env {
 	}
 	return &Env{bindings: bindings, previous: env}
 }
-

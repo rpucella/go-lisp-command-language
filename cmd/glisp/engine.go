@@ -6,13 +6,35 @@ import "os"
 import "strings"
 import "io"
 
-var context = Context{nil}
+type Engine struct {
+	env *Env
+}
 
-func shell(env *Env) {
-	context.environment = env
+func NewEngine() Engine {
+	coreBindings := corePrimitives()
+	coreBindings["true"] = &VBoolean{true}
+	coreBindings["false"] = &VBoolean{false}
+	env := &Env{bindings: coreBindings, previous: nil}
+	return Engine{env}
+}
+
+// TODO: engine.Read()
+// TODO: engine.Eval()
+// TODO: engine.ReadEval()
+
+// TODO: engine.DefineConstant()
+// TODO: engine.DefineFunction()
+// TODO: engine.DefineMacro()
+
+// TODO: make prompt a function (of what?)
+
+// TODO: what do we export? Engine, Value
+
+func (e Engine) Repl(prompt string) {
+	env := e.env
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Printf("glisp> ")
+		fmt.Printf("%s> ", prompt)
 		text, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -31,12 +53,12 @@ func shell(env *Env) {
 		}
 		// check if it's a declaration
 		d, err := parseDef(v)
-		if err != nil { 
+		if err != nil {
 			fmt.Println("PARSE ERROR -", err.Error())
 			continue
 		}
 		if d != nil {
-			if d.typ == DEF_FUNCTION { 
+			if d.typ == DEF_FUNCTION {
 				update(env, d.name, &VFunction{d.params, d.body, env})
 				fmt.Println(d.name)
 				continue
@@ -56,7 +78,7 @@ func shell(env *Env) {
 		}
 		// check if it's an expression
 		e, err := parseExpr(v)
-		if err != nil { 
+		if err != nil {
 			fmt.Println("PARSE ERROR -", err.Error())
 			continue
 		}
@@ -66,21 +88,12 @@ func shell(env *Env) {
 			fmt.Println("EVAL ERROR -", err.Error())
 			continue
 		}
-		if !v.isNil() { 
+		if !v.isNil() {
 			fmt.Println(v.display())
 		}
 	}
 }
 
 func bail() {
-	fmt.Println("tada")
 	os.Exit(0)
-}
-
-func initialize() *Env {
-	coreBindings := corePrimitives()
-	coreBindings["true"] = &VBoolean{true}
-	coreBindings["false"] = &VBoolean{false}
-	env := &Env{bindings: coreBindings, previous: nil}
-	return env
 }

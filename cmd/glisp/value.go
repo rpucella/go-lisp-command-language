@@ -1,4 +1,4 @@
- package main
+package main
 
 import "fmt"
 import "strings"
@@ -63,8 +63,8 @@ type VSymbol struct {
 
 type VFunction struct {
 	params []string
-	body AST
-	env *Env
+	body   AST
+	env    *Env
 }
 
 type VString struct {
@@ -85,7 +85,7 @@ type VArray struct {
 type VDict struct {
 	content map[string]Value
 }
-  
+
 func (v *VInteger) display() string {
 	return fmt.Sprintf("%d", v.val)
 }
@@ -399,7 +399,7 @@ func (v *VPrimitive) isNil() bool {
 }
 
 func (v *VPrimitive) isEqual(vv Value) bool {
-	return v == vv      // pointer equality
+	return v == vv // pointer equality
 }
 
 func (v *VPrimitive) typ() string {
@@ -638,7 +638,7 @@ func (v *VCons) isEqual(vv Value) bool {
 		curr1 = curr1.tailValue()
 		curr2 = curr2.tailValue()
 	}
-	return curr1.isEqual(curr2)   // should both be empty at the end
+	return curr1.isEqual(curr2) // should both be empty at the end
 }
 
 func (v *VCons) typ() string {
@@ -866,7 +866,7 @@ func (v *VFunction) isNil() bool {
 }
 
 func (v *VFunction) isEqual(vv Value) bool {
-	return v == vv    // pointer equality
+	return v == vv // pointer equality
 }
 
 func (v *VFunction) typ() string {
@@ -922,7 +922,7 @@ func (v *VString) apply(args []Value) (Value, error) {
 }
 
 func (v *VString) str() string {
-	return fmt.Sprintf("VString[%s]", v.str)
+	return fmt.Sprintf("VString[%s]", v.str())
 }
 
 func (v *VString) headValue() Value {
@@ -1166,7 +1166,7 @@ func (v *VReference) tailValue() Value {
 }
 
 func (v *VReference) isAtom() bool {
-	return false   // ?
+	return false // ?
 }
 
 func (v *VReference) isSymbol() bool {
@@ -1210,7 +1210,7 @@ func (v *VReference) isNil() bool {
 }
 
 func (v *VReference) isEqual(vv Value) bool {
-	return v == vv     // pointer equality
+	return v == vv // pointer equality
 }
 
 func (v *VReference) typ() string {
@@ -1300,7 +1300,7 @@ func (v *VArray) tailValue() Value {
 }
 
 func (v *VArray) isAtom() bool {
-	return false   // ?
+	return false // ?
 }
 
 func (v *VArray) isSymbol() bool {
@@ -1344,17 +1344,17 @@ func (v *VArray) isNil() bool {
 }
 
 func (v *VArray) isEqual(vv Value) bool {
-	return v == vv    // pointer equality because arrays will be mutable
+	return v == vv // pointer equality because arrays will be mutable
 	/*
-	if !vv.isArray() || len(v.content) != len(vv.getArray()) {
-		return false}
-	vvcontent := vv.getArray()
-	for i := range(v.content) {
-		if !v.content[i].isEqual(vvcontent[i]) {
-			return false
+		if !vv.isArray() || len(v.content) != len(vv.getArray()) {
+			return false}
+		vvcontent := vv.getArray()
+		for i := range(v.content) {
+			if !v.content[i].isEqual(vvcontent[i]) {
+				return false
+			}
 		}
-	}
-	return true
+		return true
 	*/
 }
 
@@ -1450,7 +1450,7 @@ func (v *VDict) tailValue() Value {
 }
 
 func (v *VDict) isAtom() bool {
-	return false   // ?
+	return false // ?
 }
 
 func (v *VDict) isSymbol() bool {
@@ -1494,7 +1494,7 @@ func (v *VDict) isNil() bool {
 }
 
 func (v *VDict) isEqual(vv Value) bool {
-	return v == vv    // pointer equality due to mutability
+	return v == vv // pointer equality due to mutability
 }
 
 func (v *VDict) typ() string {
@@ -1524,4 +1524,3 @@ func (v *VDict) isDict() bool {
 func (v *VDict) getDict() map[string]Value {
 	return v.content
 }
-

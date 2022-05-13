@@ -8,10 +8,10 @@ const DEF_VALUE = 0
 const DEF_FUNCTION = 1
 
 type Def struct {
-	name string
-	typ int
+	name   string
+	typ    int
 	params []string
-	body AST
+	body   AST
 }
 
 type AST interface {
@@ -23,7 +23,7 @@ type AST interface {
 type PartialResult struct {
 	exp AST
 	env *Env
-	val Value  // val is null when the result is still partial
+	val Value // val is null when the result is still partial
 }
 
 type Literal struct {
@@ -50,18 +50,18 @@ type Quote struct {
 }
 
 type LetRec struct {
-	names []string
+	names  []string
 	params [][]string
 	bodies []AST
-	body AST
+	body   AST
 }
 
 func defaultEvalPartial(e AST, env *Env) (*PartialResult, error) {
-        // Partial evaluation
-        // Sometimes return an expression to evaluate next along 
-        // with an environment for evaluation.
-        // val is null when the result is in fact a value.
-	
+	// Partial evaluation
+	// Sometimes return an expression to evaluate next along
+	// with an environment for evaluation.
+	// val is null when the result is in fact a value.
+
 	v, err := e.eval(env)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (e *If) eval(env *Env) (Value, error) {
 	return defaultEval(e, env)
 }
 
-func (e *If) evalPartial(env *Env) (*PartialResult, error) { 
+func (e *If) evalPartial(env *Env) (*PartialResult, error) {
 	c, err := e.cnd.eval(env)
 	if err != nil {
 		return nil, err

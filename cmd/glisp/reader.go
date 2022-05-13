@@ -58,7 +58,7 @@ func readString(s string) (Value, string) {
 	if result == "" {
 		return nil, s
 	}
-	return &VString{result[1:len(result) - 1]}, rest
+	return &VString{result[1 : len(result)-1]}, rest
 }
 
 func readInteger(s string) (Value, string) {

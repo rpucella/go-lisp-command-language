@@ -17,7 +17,7 @@ const kw_MACRO string = "macro"
 const kw_AND string = "and"
 const kw_OR string = "or"
 
-var fresh = (func(init int) func(string)string { 
+var fresh = (func(init int) func(string) string {
 	id := init
 	return func(prefix string) string {
 		result := fmt.Sprintf("%s_%d", prefix, id)
@@ -53,9 +53,9 @@ func parseDef(sexp Value) (*Def, error) {
 			return nil, errors.New("too many arguments to def")
 		}
 		return &Def{name, DEF_VALUE, nil, value}, nil
-	}		
+	}
 	if defBlock.isCons() {
-		if !defBlock.headValue().isSymbol() { 
+		if !defBlock.headValue().isSymbol() {
 			return nil, errors.New("definition name not a symbol")
 		}
 		name := defBlock.headValue().strValue()
@@ -89,7 +89,7 @@ func parseExpr(sexp Value) (AST, error) {
 		return expr, err
 	}
 	expr, err = parseIf(sexp)
-	if err != nil  || expr != nil {
+	if err != nil || expr != nil {
 		return expr, err
 	}
 	expr, err = parseFunction(sexp)
@@ -512,7 +512,7 @@ func parseDo(sexp Value) (AST, error) {
 
 func makeDo(exprs []AST) AST {
 	if len(exprs) > 0 {
-		result := exprs[len(exprs) - 1]
+		result := exprs[len(exprs)-1]
 		for i := len(exprs) - 2; i >= 0; i-- {
 			result = makeLet([]string{fresh("__temp")}, []AST{exprs[i]}, result)
 		}
