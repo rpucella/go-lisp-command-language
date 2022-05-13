@@ -59,7 +59,7 @@ func test_value_plus() {
 
 func evalDisplay(e ast, env *Env) string {
 	v, _ := e.eval(env)
-	return v.display()
+	return v.Display()
 }
 
 func test_literal() {
@@ -98,17 +98,17 @@ func test_if() {
 
 func test_read() {
 	v1, _, _ := read("123")
-	fmt.Println(v1.str(), "->", v1.display())
+	fmt.Println(v1.str(), "->", v1.Display())
 	v2, _, _ := read("a")
-	fmt.Println(v2.str(), "->", v2.display())
+	fmt.Println(v2.str(), "->", v2.Display())
 	v6, _, _ := read("+")
-	fmt.Println(v6.str(), "->", v6.display())
+	fmt.Println(v6.str(), "->", v6.Display())
 	v3, _, _ := read("(+ 33 a)")
-	fmt.Println(v3.str(), "->", v3.display())
+	fmt.Println(v3.str(), "->", v3.Display())
 	v4, _, _ := read("(+ 33 (+ a b))")
-	fmt.Println(v4.str(), "->", v4.display())
+	fmt.Println(v4.str(), "->", v4.Display())
 	v5, _, _ := read("(this is my life)")
-	fmt.Println(v5.str(), "->", v5.display())
+	fmt.Println(v5.str(), "->", v5.Display())
 }
 
 func test_lists() {
@@ -116,5 +116,5 @@ func test_lists() {
 	v = &vCons{head: &vInteger{33}, tail: v}
 	v = &vCons{head: &vInteger{66}, tail: v}
 	v = &vCons{head: &vInteger{99}, tail: v}
-	fmt.Println(v.str(), "->", v.display())
+	fmt.Println(v.str(), "->", v.Display())
 }

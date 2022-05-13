@@ -89,7 +89,7 @@ func (e Engine) Repl(prompt string) {
 			continue
 		}
 		if !v.isNil() {
-			fmt.Println(v.display())
+			fmt.Println(v.Display())
 		}
 	}
 }
