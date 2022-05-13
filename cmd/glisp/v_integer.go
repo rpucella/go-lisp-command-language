@@ -20,32 +20,12 @@ func (v *vInteger) DisplayCDR() string {
 	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
-func (v *vInteger) intValue() int {
-	return v.val
-}
-
-func (v *vInteger) strValue() string {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vInteger) boolValue() bool {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
 func (v *vInteger) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
 func (v *vInteger) str() string {
 	return fmt.Sprintf("VInteger[%d]", v.val)
-}
-
-func (v *vInteger) headValue() Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vInteger) tailValue() Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
 }
 
 func (v *vInteger) isAtom() bool {
@@ -69,10 +49,6 @@ func (v *vInteger) isNumber() bool {
 }
 
 func (v *vInteger) isBool() bool {
-	return false
-}
-
-func (v *vInteger) isRef() bool {
 	return false
 }
 
@@ -100,30 +76,6 @@ func (v *vInteger) typ() string {
 	return "int"
 }
 
-func (v *vInteger) getValue() Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vInteger) setValue(cv Value) {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vInteger) isArray() bool {
-	return false
-}
-
-func (v *vInteger) getArray() []Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vInteger) isDict() bool {
-	return false
-}
-
-func (v *vInteger) getDict() map[string]Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
 func (v *vInteger) asInteger() (int, bool) {
 	return v.val, true
 }
@@ -144,8 +96,8 @@ func (v *vInteger) asCons() (Value, Value, bool) {
 	return nil, nil, false
 }
 
-func (v *vInteger) asReference() (Value, bool) {
-	return nil, false
+func (v *vInteger) asReference() (Value, func(Value), bool) {
+	return nil, nil, false
 }
 
 func (v *vInteger) setReference(Value) bool {
@@ -159,3 +111,55 @@ func (v *vInteger) asArray() ([]Value, bool) {
 func (v *vInteger) asDict() (map[string]Value, bool) {
 	return nil, false
 }
+
+
+func (v *vInteger) intValue() int {
+	return intValue(v)
+}
+
+func (v *vInteger) strValue() string {
+	return strValue(v)
+}
+
+func (v *vInteger) boolValue() bool {
+	return boolValue(v)
+}
+
+func (v *vInteger) headValue() Value {
+	return headValue(v)
+}
+
+func (v *vInteger) tailValue() Value {
+	return tailValue(v)
+}
+
+
+func (v *vInteger) isArray() bool {
+	return isArray(v)
+}
+
+func (v *vInteger) getArray() []Value {
+	return getArray(v)
+}
+
+func (v *vInteger) isDict() bool {
+	return isDict(v)
+}
+
+func (v *vInteger) getDict() map[string]Value {
+	return getDict(v)
+}
+
+
+func (v *vInteger) isRef() bool {
+	return isRef(v)
+}
+
+func (v *vInteger) getValue() Value {
+	return getValue(v)
+}
+
+func (v *vInteger) setValue(cv Value) {
+	setValue(v, cv)
+}
+

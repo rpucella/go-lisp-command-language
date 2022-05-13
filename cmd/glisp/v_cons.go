@@ -32,32 +32,12 @@ func (v *vCons) DisplayCDR() string {
 	return " " + v.head.Display() + v.tail.DisplayCDR()
 }
 
-func (v *vCons) intValue() int {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vCons) strValue() string {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
-func (v *vCons) boolValue() bool {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
-}
-
 func (v *vCons) apply(args []Value) (Value, error) {
 	return nil, fmt.Errorf("Value %s not applicable", v.str())
 }
 
 func (v *vCons) str() string {
 	return fmt.Sprintf("VCons[%s %s]", v.head.str(), v.tail.str())
-}
-
-func (v *vCons) headValue() Value {
-	return v.head
-}
-
-func (v *vCons) tailValue() Value {
-	return v.tail
 }
 
 func (v *vCons) isAtom() bool {
@@ -81,10 +61,6 @@ func (v *vCons) isNumber() bool {
 }
 
 func (v *vCons) isBool() bool {
-	return false
-}
-
-func (v *vCons) isRef() bool {
 	return false
 }
 
@@ -127,27 +103,90 @@ func (v *vCons) typ() string {
 	return "list"
 }
 
-func (v *vCons) getValue() Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
+func (v *vCons) asInteger() (int, bool) {
+	return 0, false
 }
 
-func (v *vCons) setValue(cv Value) {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
+func (v *vCons) asBoolean() (bool, bool) {
+	return false, false
 }
+
+func (v *vCons) asString() (string, bool) {
+	return "", false
+}
+
+func (v *vCons) asSymbol() (string, bool) {
+	return "", false
+}
+
+func (v *vCons) asCons() (Value, Value, bool) {
+	return v.head, v.tail, true
+}
+
+func (v *vCons) asReference() (Value, func(Value), bool) {
+	return nil, nil, false
+}
+
+func (v *vCons) setReference(Value) bool {
+	return false
+}
+
+func (v *vCons) asArray() ([]Value, bool) {
+	return nil, false
+}
+
+func (v *vCons) asDict() (map[string]Value, bool) {
+	return nil, false
+}
+
+
+func (v *vCons) intValue() int {
+	return intValue(v)
+}
+
+func (v *vCons) strValue() string {
+	return strValue(v)
+}
+
+func (v *vCons) boolValue() bool {
+	return boolValue(v)
+}
+
+func (v *vCons) headValue() Value {
+	return headValue(v)
+}
+
+func (v *vCons) tailValue() Value {
+	return tailValue(v)
+}
+
 
 func (v *vCons) isArray() bool {
-	return false
+	return isArray(v)
 }
 
 func (v *vCons) getArray() []Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
+	return getArray(v)
 }
 
 func (v *vCons) isDict() bool {
-	return false
+	return isDict(v)
 }
 
 func (v *vCons) getDict() map[string]Value {
-	panic(fmt.Sprintf("unchecked access to %s", v.str()))
+	return getDict(v)
+}
+
+
+func (v *vCons) isRef() bool {
+	return isRef(v)
+}
+
+func (v *vCons) getValue() Value {
+	return getValue(v)
+}
+
+func (v *vCons) setValue(cv Value) {
+	setValue(v, cv)
 }
 

@@ -122,7 +122,8 @@ func isList(v Value) bool {
 }
 
 func isReference(v Value) bool {
-	return v.isRef()
+	_, _, ok := v.asReference()
+	return ok
 }
 
 func mkNumPredicate(pred func(int, int) bool) func(string, []Value) (Value, error) {
@@ -664,7 +665,8 @@ var CORE_PRIMITIVES = []Primitive{
 
 	Primitive{"ref?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return NewBoolean(args[0].isRef()), nil
+			_, _, ok := args[0].asReference()
+			return NewBoolean(ok), nil
 		},
 	},
 
@@ -710,7 +712,8 @@ var CORE_PRIMITIVES = []Primitive{
 
 	Primitive{"array?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return NewBoolean(args[0].isArray()), nil
+			_, ok := args[0].asArray()
+			return NewBoolean(ok), nil
 		},
 	},
 
@@ -732,7 +735,8 @@ var CORE_PRIMITIVES = []Primitive{
 
 	Primitive{"dict?", 1, 1,
 		func(name string, args []Value) (Value, error) {
-			return NewBoolean(args[0].isDict()), nil
+			_, ok := args[0].asDict()
+			return NewBoolean(ok), nil
 		},
 	},
 

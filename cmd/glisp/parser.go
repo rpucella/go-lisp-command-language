@@ -39,8 +39,7 @@ func parseDef(sexp Value) (*astDef, error) {
 		return nil, errors.New("too few arguments to def")
 	}
 	defBlock := next.headValue()
-	if defBlock.isSymbol() {
-		name := defBlock.strValue()
+	if name, ok := defBlock.asSymbol(); ok {
 		next = next.tailValue()
 		if !next.isCons() {
 			return nil, errors.New("too few arguments to def")
@@ -55,10 +54,10 @@ func parseDef(sexp Value) (*astDef, error) {
 		return &astDef{name, DEF_VALUE, nil, value}, nil
 	}
 	if defBlock.isCons() {
-		if !defBlock.headValue().isSymbol() {
+		name, ok := defBlock.headValue().asSymbol()
+		if !ok {
 			return nil, errors.New("definition name not a symbol")
 		}
-		name := defBlock.headValue().strValue()
 		params, err := parseSymbols(defBlock.tailValue())
 		if err != nil {
 			return nil, err
@@ -120,8 +119,8 @@ func parseExpr(sexp Value) (ast, error) {
 }
 
 func parseAtom(sexp Value) ast {
-	if sexp.isSymbol() {
-		return &astId{sexp.strValue()}
+	if name, ok := sexp.asSymbol(); ok {
+		return &astId{name}
 	}
 	if sexp.isAtom() {
 		return &astLiteral{sexp}
@@ -130,10 +129,11 @@ func parseAtom(sexp Value) ast {
 }
 
 func parseKeyword(kw string, sexp Value) bool {
-	if !sexp.isSymbol() {
+	name, ok := sexp.asSymbol()
+	if !ok {
 		return false
 	}
-	return (sexp.strValue() == kw)
+	return (name == kw)
 }
 
 func parseastQuote(sexp Value) (ast, error) {
@@ -204,7 +204,7 @@ func parseFunction(sexp Value) (ast, error) {
 	if !next.isCons() {
 		return nil, errors.New("too few arguments to fun")
 	}
-	if next.headValue().isSymbol() {
+	if _, ok := next.headValue().asSymbol(); ok {
 		// we need to parse as a recursive function
 		// restart from scratch
 		return parseRecFunction(sexp)
@@ -357,10 +357,11 @@ func parseBindings(sexp Value) ([]string, []ast, error) {
 		if !current.headValue().isCons() {
 			return nil, nil, errors.New("expected binding (name expr)")
 		}
-		if !current.headValue().headValue().isSymbol() {
+		name, ok := current.headValue().headValue().asSymbol()
+		if !ok {
 			return nil, nil, errors.New("expected name in binding")
 		}
-		params = append(params, current.headValue().headValue().strValue())
+		params = append(params, name)
 		if !current.headValue().tailValue().isCons() {
 			return nil, nil, errors.New("expected expr in binding")
 		}
@@ -389,10 +390,11 @@ func parseFunBindings(sexp Value) ([]string, [][]string, []ast, error) {
 		if !current.headValue().isCons() {
 			return nil, nil, nil, errors.New("expected binding (name params expr)")
 		}
-		if !current.headValue().headValue().isSymbol() {
+		name, ok := current.headValue().headValue().asSymbol()
+		if !ok {
 			return nil, nil, nil, errors.New("expected name in binding")
 		}
-		names = append(names, current.headValue().headValue().strValue())
+		names = append(names, name)
 		if !current.headValue().tailValue().isCons() {
 			return nil, nil, nil, errors.New("expected params in binding")
 		}
@@ -483,10 +485,11 @@ func parseSymbols(sexp Value) ([]string, error) {
 	params := make([]string, 0)
 	current := sexp
 	for current.isCons() {
-		if !current.headValue().isSymbol() {
+		name, ok := current.headValue().asSymbol()
+		if !ok {
 			return nil, errors.New("expected symbol in list")
 		}
-		params = append(params, current.headValue().strValue())
+		params = append(params, name)
 		current = current.tailValue()
 	}
 	if !current.isEmpty() {
