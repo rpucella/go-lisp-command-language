@@ -13,10 +13,18 @@ func test() {
 	test_read()
 }
 
+func getInt(v Value) int {
+	i, ok := v.asInteger()
+	if ok {
+		return i
+	}
+	panic("not an integer")
+}
+
 func primitiveAdd(args []Value) (Value, error) {
 	var result int
 	for _, val := range args {
-		result += val.intValue()
+		result += getInt(val)
 	}
 	return &vInteger{result}, nil
 }
@@ -24,7 +32,7 @@ func primitiveAdd(args []Value) (Value, error) {
 func primitiveMult(args []Value) (Value, error) {
 	var result int = 1
 	for _, val := range args {
-		result *= val.intValue()
+		result *= getInt(val)
 	}
 	return &vInteger{result}, nil
 }
@@ -44,7 +52,7 @@ func sampleEnv() *Env {
 
 func test_value_10() {
 	var v1 Value = &vInteger{10}
-	fmt.Println(v1.str(), "->", v1.intValue())
+	fmt.Println(v1.str(), "->", getInt(v1))
 }
 
 func test_value_plus() {
@@ -54,7 +62,7 @@ func test_value_plus() {
 	var vp Value = &vPrimitive{"+", primitiveAdd}
 	var args []Value = []Value{v1, v2, v3}
 	vr, _ := vp.apply(args)
-	fmt.Println(vp.str(), "->", vr.intValue())
+	fmt.Println(vp.str(), "->", getInt(vr))
 }
 
 func evalDisplay(e ast, env *Env) string {

@@ -81,20 +81,21 @@ func (v *vCons) isNil() bool {
 }
 
 func (v *vCons) isEqual(vv Value) bool {
-	if !vv.isCons() {
+	if _, _, ok := vv.asCons(); !ok {
 		return false
 	}
 	var curr1 Value = v
 	var curr2 Value = vv
-	for curr1.isCons() {
-		if !curr2.isCons() {
+	for head1, tail1, ok := v.asCons(); ok; head1, tail1, ok = tail1.asCons() {
+		head2, tail2, ok := curr2.asCons()
+		if !ok {
 			return false
 		}
-		if !curr1.headValue().isEqual(curr2.headValue()) {
+		if !head1.isEqual(head2) {
 			return false
 		}
-		curr1 = curr1.tailValue()
-		curr2 = curr2.tailValue()
+		curr1 = tail1
+		curr2 = tail2
 	}
 	return curr1.isEqual(curr2) // should both be empty at the end
 }
@@ -138,55 +139,3 @@ func (v *vCons) asArray() ([]Value, bool) {
 func (v *vCons) asDict() (map[string]Value, bool) {
 	return nil, false
 }
-
-
-func (v *vCons) intValue() int {
-	return intValue(v)
-}
-
-func (v *vCons) strValue() string {
-	return strValue(v)
-}
-
-func (v *vCons) boolValue() bool {
-	return boolValue(v)
-}
-
-func (v *vCons) headValue() Value {
-	return headValue(v)
-}
-
-func (v *vCons) tailValue() Value {
-	return tailValue(v)
-}
-
-
-func (v *vCons) isArray() bool {
-	return isArray(v)
-}
-
-func (v *vCons) getArray() []Value {
-	return getArray(v)
-}
-
-func (v *vCons) isDict() bool {
-	return isDict(v)
-}
-
-func (v *vCons) getDict() map[string]Value {
-	return getDict(v)
-}
-
-
-func (v *vCons) isRef() bool {
-	return isRef(v)
-}
-
-func (v *vCons) getValue() Value {
-	return getValue(v)
-}
-
-func (v *vCons) setValue(cv Value) {
-	setValue(v, cv)
-}
-

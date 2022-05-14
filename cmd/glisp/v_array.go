@@ -26,13 +26,16 @@ func (v *vArray) DisplayCDR() string {
 }
 
 func (v *vArray) apply(args []Value) (Value, error) {
-	if len(args) < 1 || !args[0].isNumber() {
+	if len(args) < 1 {
 		return nil, fmt.Errorf("array indexing requires an index")
 	}
 	if len(args) > 2 {
 		return nil, fmt.Errorf("too many arguments %d to array update", len(args))
 	}
-	idx := args[0].intValue()
+	idx, ok := args[0].asInteger()
+	if !ok {
+		return nil, fmt.Errorf("array indexing requires an integer index")
+	}
 	if idx < 0 || idx >= len(v.content) {
 		return nil, fmt.Errorf("array index out of bounds %d", idx)
 	}
@@ -145,55 +148,3 @@ func (v *vArray) asArray() ([]Value, bool) {
 func (v *vArray) asDict() (map[string]Value, bool) {
 	return nil, false
 }
-
-
-func (v *vArray) intValue() int {
-	return intValue(v)
-}
-
-func (v *vArray) strValue() string {
-	return strValue(v)
-}
-
-func (v *vArray) boolValue() bool {
-	return boolValue(v)
-}
-
-func (v *vArray) headValue() Value {
-	return headValue(v)
-}
-
-func (v *vArray) tailValue() Value {
-	return tailValue(v)
-}
-
-
-func (v *vArray) isArray() bool {
-	return isArray(v)
-}
-
-func (v *vArray) getArray() []Value {
-	return getArray(v)
-}
-
-func (v *vArray) isDict() bool {
-	return isDict(v)
-}
-
-func (v *vArray) getDict() map[string]Value {
-	return getDict(v)
-}
-
-
-func (v *vArray) isRef() bool {
-	return isRef(v)
-}
-
-func (v *vArray) getValue() Value {
-	return getValue(v)
-}
-
-func (v *vArray) setValue(cv Value) {
-	setValue(v, cv)
-}
-

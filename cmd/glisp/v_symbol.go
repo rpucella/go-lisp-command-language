@@ -69,7 +69,8 @@ func (v *vSymbol) isNil() bool {
 }
 
 func (v *vSymbol) isEqual(vv Value) bool {
-	return vv.isSymbol() && v.strValue() == vv.strValue()
+	name, ok := vv.asSymbol()
+	return ok && v.name == name
 }
 
 func (v *vSymbol) typ() string {
@@ -111,55 +112,3 @@ func (v *vSymbol) asArray() ([]Value, bool) {
 func (v *vSymbol) asDict() (map[string]Value, bool) {
 	return nil, false
 }
-
-
-func (v *vSymbol) intValue() int {
-	return intValue(v)
-}
-
-func (v *vSymbol) strValue() string {
-	return strValue(v)
-}
-
-func (v *vSymbol) boolValue() bool {
-	return boolValue(v)
-}
-
-func (v *vSymbol) headValue() Value {
-	return headValue(v)
-}
-
-func (v *vSymbol) tailValue() Value {
-	return tailValue(v)
-}
-
-
-func (v *vSymbol) isArray() bool {
-	return isArray(v)
-}
-
-func (v *vSymbol) getArray() []Value {
-	return getArray(v)
-}
-
-func (v *vSymbol) isDict() bool {
-	return isDict(v)
-}
-
-func (v *vSymbol) getDict() map[string]Value {
-	return getDict(v)
-}
-
-
-func (v *vSymbol) isRef() bool {
-	return isRef(v)
-}
-
-func (v *vSymbol) getValue() Value {
-	return getValue(v)
-}
-
-func (v *vSymbol) setValue(cv Value) {
-	setValue(v, cv)
-}
-
